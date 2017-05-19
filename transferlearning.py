@@ -1,5 +1,38 @@
+import tensorflow as tf
+import numpy as np
+import time
+from datetime import timedelta
+import os
+# We use Pretty Tensor to define the new classifier.
 import prettytensor as pt
+
+# Functions and classes for loading and using the Inception model.
+import inception
+
+exec(open("./configuration.py").read())
+
+
 num_classes = 2
+from inception import transfer_values_cache
+# from inception import cache_data_path
+# inception.data_dir = 'inception/'
+inception.maybe_download()
+model = inception.Inception()
+
+file_path_cache_train = os.path.join(cache_data_path, 'inception_train.pkl')
+
+print("Processing Inception transfer-values for training-images ...")
+
+# Scale images because Inception needs pixels to be between 0 and 255,
+# while the CIFAR-10 functions return pixels between 0.0 and 1.0
+image_path = [os.path.join(data_dir, 'profile.jpg'), os.path.join(data_dir, 'cover.jpg')]
+# images_scaled = images_train * 255.0
+
+# If transfer-values have already been calculated then reload them,
+# otherwise calculate them and save them to a cache-file.
+transfer_values_train = transfer_values_cache(cache_path=file_path_cache_train,
+                                              image_paths=image_path,
+                                              model=model)
 
 transfer_len = model.transfer_len
 x = tf.placeholder(tf.float32, shape=[None, transfer_len], name='x')
@@ -125,12 +158,12 @@ def predict_cls(transfer_values, labels, cls_true):
 
     return correct, cls_pred
 
-
+'''
 def predict_cls_test():
     return predict_cls(transfer_values = transfer_values_test,
                        labels = labels_test,
                        cls_true = cls_test)
-
+'''
 def classification_accuracy(correct):
     # When averaging a boolean array, False means 0 and True means 1.
     # So we are calculating: number of True / len(correct) which is
@@ -139,7 +172,7 @@ def classification_accuracy(correct):
     # Return the classification accuracy
     # and the number of correct classifications.
     return correct.mean(), correct.sum()
-
+'''
 def print_test_accuracy(show_example_errors=False,
                         show_confusion_matrix=False):
 
@@ -172,3 +205,4 @@ print_test_accuracy(show_example_errors=False,
                     show_confusion_matrix=False)
 
 optimize(num_iterations=10000)
+'''
