@@ -9,13 +9,12 @@ import prettytensor as pt
 # Functions and classes for loading and using the Inception model.
 import inception
 
+#Various directories and files
 exec(open("./configuration.py").read())
 
 
 num_classes = 2
 from inception import transfer_values_cache
-# from inception import cache_data_path
-# inception.data_dir = 'inception/'
 inception.maybe_download()
 model = inception.Inception()
 
