@@ -396,7 +396,7 @@ def transfer_values_cache(cache_path, model, images=None, image_paths=None):
 
 ########################################################################
 # Example usage.
-
+'''
 if __name__ == '__main__':
     print(tf.__version__)
 
@@ -422,6 +422,6 @@ if __name__ == '__main__':
     print(transfer_values.shape)
     # Close the TensorFlow session.
     model.close()
-
+'''
 
 ########################################################################
