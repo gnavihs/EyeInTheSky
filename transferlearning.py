@@ -28,24 +28,35 @@ print([op.name for op in ops])
 '''
 
 
-'''
 num_classes = 2
 inception.maybe_download()
 model = inception.Inception()
 
 file_path_cache_train = os.path.join(cache_data_path, 'inception_train.pkl')
+file_path_cache_test = os.path.join(cache_data_path, 'inception_test.pkl')
 
 print("Processing Inception transfer-values for training-images ...")
 
 # Scale images because Inception needs pixels to be between 0 and 255,
 # while the CIFAR-10 functions return pixels between 0.0 and 1.0
-image_path = [os.path.join(data_dir, 'profile.jpg'), os.path.join(data_dir, 'cover.jpg')]
+# image_path = [os.path.join(data_dir, 'profile.jpg'), os.path.join(data_dir, 'cover.jpg')]
+images_train = data.train.images
+labels_train =  data.train.labels
+images_test = data.test.images
+labels_test =  data.test.labels
+
 # images_scaled = images_train * 255.0
 
 # If transfer-values have already been calculated then reload them,
 # otherwise calculate them and save them to a cache-file.
 transfer_values_train = transfer_values_cache(cache_path=file_path_cache_train,
-                                              image_paths=image_path,
+                                              images=images_train,
+                                              model=model)
+
+print("Processing Inception transfer-values for testing-images ...")
+
+transfer_values_test = transfer_values_cache(cache_path=file_path_cache_test,
+                                              images=images_test,
                                               model=model)
 
 transfer_len = model.transfer_len
@@ -203,7 +214,7 @@ def print_test_accuracy(show_example_errors=False,
     # Print the accuracy.
     msg = "Accuracy on Test-Set: {0:.1%} ({1} / {2})"
     print(msg.format(acc, num_correct, num_images))
-
+'''
     # Plot some examples of mis-classifications, if desired.
     if show_example_errors:
         print("Example errors:")
@@ -213,11 +224,56 @@ def print_test_accuracy(show_example_errors=False,
     if show_confusion_matrix:
         print("Confusion Matrix:")
         plot_confusion_matrix(cls_pred=cls_pred)
-
+'''
 
 print_test_accuracy(show_example_errors=False,
                     show_confusion_matrix=False)
 
-optimize(num_iterations=10000)
-'''
+optimize(num_iterations=1000)
+print_test_accuracy(show_example_errors=False,
+                    show_confusion_matrix=False)
+
+optimize(num_iterations=1000)
+print_test_accuracy(show_example_errors=False,
+                    show_confusion_matrix=False)
+
+optimize(num_iterations=1000)
+print_test_accuracy(show_example_errors=False,
+                    show_confusion_matrix=False)
+
+optimize(num_iterations=1000)
+print_test_accuracy(show_example_errors=False,
+                    show_confusion_matrix=False)
+
+optimize(num_iterations=1000)
+print_test_accuracy(show_example_errors=False,
+                    show_confusion_matrix=False)
+
+optimize(num_iterations=1000)
+print_test_accuracy(show_example_errors=False,
+                    show_confusion_matrix=False)
+
+optimize(num_iterations=1000)
+print_test_accuracy(show_example_errors=False,
+                    show_confusion_matrix=False)
+
+optimize(num_iterations=1000)
+print_test_accuracy(show_example_errors=False,
+                    show_confusion_matrix=False)
+
+optimize(num_iterations=1000)
+print_test_accuracy(show_example_errors=False,
+                    show_confusion_matrix=False)
+
+optimize(num_iterations=1000)
+print_test_accuracy(show_example_errors=False,
+                    show_confusion_matrix=False)
+
+optimize(num_iterations=1000)
+print_test_accuracy(show_example_errors=False,
+                    show_confusion_matrix=False)
+
+optimize(num_iterations=1000)
+print_test_accuracy(show_example_errors=False,
+                    show_confusion_matrix=False)
 

@@ -8,12 +8,12 @@ np.set_printoptions(threshold=np.nan)
 
 exec(open("./File_Paths.py").read())
 
-Dataset = collections.namedtuple('Dataset', ['images', 'labels'])
+Dataset = collections.namedtuple('Dataset', ['images', 'labels', 'cls'])
 Datasets = collections.namedtuple('Datasets', ['train', 'test'])
 images_test = []
-labels_test = []
+cls_test = []
 images_train = []
-labels_train = []
+cls_train = []
 
 #Function for cropping images and assigning to test or train set
 def pre_process_image(image,  annotations_type, x, y):
@@ -28,10 +28,10 @@ def pre_process_image(image,  annotations_type, x, y):
             cropped_image = image[x0:x0+height, y0:y0+width,:]
             if (x%2048 < 1024) and (y%2048 < 1024):
                 images_test.append(cropped_image)
-                labels_test.append(annotations_type)
+                cls_test.append(annotations_type)
             else:                
                 images_train.append(cropped_image)
-                labels_train.append(annotations_type)
+                cls_train.append(annotations_type)
 
 
 #Loop through all set of files to build train and test set            
@@ -56,17 +56,17 @@ for single_set_of_file in all_files:
 
 
 #Set named tuples
-train = Dataset(images=images_train, labels=labels_train)
-test = Dataset(images=images_test, labels=labels_test)
-data = Datasets(train=train, test=test)
+labels = np.zeros((len(cls_train), max(cls_train)+1))
+labels[np.arange(len(cls_train)),cls_train] = 1
+train = Dataset(images=images_train, labels=labels, cls=cls_train)
 
+labels = np.zeros((len(cls_test), max(cls_test)+1))
+labels[np.arange(len(cls_test)),cls_test] = 1
+test = Dataset(images=images_test, labels=labels, cls=cls_test)
+
+data = Datasets(train=train, test=test)
 print(len(data.train.images))
 print(len(data.test.images))
-
-
-
-
-
 
 
 
