@@ -11,10 +11,23 @@ import inception
 
 #Various directories and files
 exec(open("./configuration.py").read())
+exec(open("./DataImport.py").read())
 
+from inception import transfer_values_cache
+###########################################################################
+######################### Data Import Session #############################
+# dataset of patches and labels
+Dataset = collections.namedtuple('Dataset', ['images', 'labels'])
+Datasets = collections.namedtuple('Datasets', ['train', 'test'])
+
+sessionDI = tf.Session()
+sessionDI.run(tf.global_variables_initializer())
+
+
+
+###########################################################################
 
 num_classes = 2
-from inception import transfer_values_cache
 inception.maybe_download()
 model = inception.Inception()
 
