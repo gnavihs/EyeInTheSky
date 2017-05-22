@@ -1,8 +1,5 @@
-import tensorflow as tf
-import numpy as np
 import time
 from datetime import timedelta
-import os
 # We use Pretty Tensor to define the new classifier.
 import prettytensor as pt
 
@@ -11,22 +8,27 @@ import inception
 
 #Various directories and files
 exec(open("./configuration.py").read())
+#Read data from files
 exec(open("./DataImport.py").read())
 
 from inception import transfer_values_cache
+'''
 ###########################################################################
 ######################### Data Import Session #############################
 # dataset of patches and labels
-Dataset = collections.namedtuple('Dataset', ['images', 'labels'])
-Datasets = collections.namedtuple('Datasets', ['train', 'test'])
 
 sessionDI = tf.Session()
 sessionDI.run(tf.global_variables_initializer())
+sessionDI.close()
 
-
+ops = tf.get_default_graph().get_operations()
+print([op.name for op in ops])
 
 ###########################################################################
+'''
 
+
+'''
 num_classes = 2
 inception.maybe_download()
 model = inception.Inception()
@@ -170,12 +172,12 @@ def predict_cls(transfer_values, labels, cls_true):
 
     return correct, cls_pred
 
-'''
+
 def predict_cls_test():
     return predict_cls(transfer_values = transfer_values_test,
                        labels = labels_test,
                        cls_true = cls_test)
-'''
+
 def classification_accuracy(correct):
     # When averaging a boolean array, False means 0 and True means 1.
     # So we are calculating: number of True / len(correct) which is
@@ -184,7 +186,7 @@ def classification_accuracy(correct):
     # Return the classification accuracy
     # and the number of correct classifications.
     return correct.mean(), correct.sum()
-'''
+
 def print_test_accuracy(show_example_errors=False,
                         show_confusion_matrix=False):
 
@@ -218,3 +220,4 @@ print_test_accuracy(show_example_errors=False,
 
 optimize(num_iterations=10000)
 '''
+

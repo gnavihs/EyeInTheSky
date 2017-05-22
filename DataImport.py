@@ -1,45 +1,82 @@
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 import tensorflow as tf
-import numpy
-# numpy.set_printoptions(threshold=numpy.nan)
+import numpy as np
+import cv2
+import collections
+np.set_printoptions(threshold=np.nan)
 
 exec(open("./File_Paths.py").read())
-a_patch = []
 
-'''
-def pre_process_image(image,  annotations_type, annotations):
+Dataset = collections.namedtuple('Dataset', ['images', 'labels'])
+Datasets = collections.namedtuple('Datasets', ['train', 'test'])
+images_test = []
+labels_test = []
+images_train = []
+labels_train = []
+
+#Function for cropping images and assigning to test or train set
+def pre_process_image(image,  annotations_type, x, y):
     # This function takes a single image as input, 
     # and returns all 256x256 cropped images
-    cropped_images = []
-    print(annotations)
-    for annotation in annotations:
-        offset_height = annotation[0] - 128
-        offset_width = annotation[1] - 128
-        target_height, target_width = 255, 255
+    x0 = x - 128
+    y0 = y - 128
+    height, width = 255, 255
 
-        if offset_width > 0 and offset_height > 0:
-            if offset_height+target_height<my_img.get_shape().as_list()[1] and offset_width+target_width<my_img.get_shape().as_list()[2]:
-                cropped_image = tf.image.crop_to_bounding_box(image, 
-                                                        offset_height,
-                                                        offset_width, 
-                                                        target_height = 255, 
-                                                        target_width = 255)
-                cropped_images.append(cropped_image)
+    if y0 > 0 and x0 > 0:
+        if x0+height<image.shape[0] and y0+width<image.shape[1]:
+            cropped_image = image[x0:x0+height, y0:y0+width,:]
+            if (x%2048 < 1024) and (y%2048 < 1024):
+                images_test.append(cropped_image)
+                labels_test.append(annotations_type)
+            else:                
+                images_train.append(cropped_image)
+                labels_train.append(annotations_type)
 
-    return cropped_images
 
-# dataset of patches and labels
-# Dataset = collections.namedtuple('Dataset', ['images', 'labels', 'cls'])
-# Datasets = collections.namedtuple('Datasets', ['train', 'test'])
+#Loop through all set of files to build train and test set            
+for single_set_of_file in all_files:
+    input_value = cv2.imread(single_set_of_file[0])
+    pos_value = cv2.imread(single_set_of_file[1])
+    neg_value = cv2.imread(single_set_of_file[2])
+
+    #Cropping positively annotated images
+    pos_annotations_index = np.nonzero(pos_value)
+    pos_annotations_index_x = pos_annotations_index[0]
+    pos_annotations_index_y = pos_annotations_index[1]
+    for i in range(len(pos_annotations_index_x)):
+        pre_process_image(input_value, 1, pos_annotations_index_x[i], pos_annotations_index_y[i])
+
+    #Cropping negatively annotated images
+    neg_annotations_index = np.nonzero(neg_value)
+    neg_annotations_index_x = neg_annotations_index[0]
+    neg_annotations_index_y = neg_annotations_index[1]
+    for i in range(len(neg_annotations_index_x)):
+        pre_process_image(input_value, 0, neg_annotations_index_x[i], neg_annotations_index_y[i])
+
+
+#Set named tuples
+train = Dataset(images=images_train, labels=labels_train)
+test = Dataset(images=images_test, labels=labels_test)
+data = Datasets(train=train, test=test)
+
+print(len(data.train.images))
+print(len(data.test.images))
+
+
+
+
+
+
+
+
+
+
 '''
-
-# print(c.eval())
-
-
-#Read all the files
+print("AAAAAAAAA")
 reader = tf.WholeFileReader()
 for single_set_of_file in all_files:
+    print("BBBBBBBB")
     input_key, input_value = reader.read(single_set_of_file[0])
     pos_key, pos_value = reader.read(single_set_of_file[1])
     neg_key, neg_value = reader.read(single_set_of_file[2])
@@ -53,11 +90,12 @@ for single_set_of_file in all_files:
     where_neg = tf.not_equal(my_img_neg, zero)
     indices_pos = tf.where(where_pos)
     indices_neg = tf.where(where_neg)
-    
-    # a_patch.append(pre_process_image(my_img, 1, indices_pos))
+    print(tf.shape(indices_pos))
+    print("CCCCCCCC")
+    pre_process_image(my_img, 1, indices_pos)
     # a_patch.append(pre_process_image(my_img, 0, indices_neg))
 
 
 # shapeOp = tf.shape(a_patch)
 
-
+'''
