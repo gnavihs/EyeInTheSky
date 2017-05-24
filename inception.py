@@ -10,14 +10,9 @@ exec(open("./configuration.py").read())
 ########################################################################
 
 def maybe_download():
-    """
-    Download the Inception model from the internet if it does not already
-    exist in the data_dir. The file is about 85 MB.
-    """
 
     print("Downloading Inception v3 Model ...")
     download.maybe_download_and_extract(url=data_url, download_dir=data_dir)
-
 
 ########################################################################
 
@@ -302,7 +297,6 @@ class Inception:
         # Create a feed-dict for the TensorFlow graph with the input image.
         feed_dict = self._create_feed_dict(image_path=image_path, image=image)
 
-        # Use TensorFlow to run the graph for the Inception model.
         # This calculates the values for the last layer of the Inception model
         # prior to the softmax-classification, which we call transfer-values.
         transfer_values = self.session.run(self.transfer_layer, feed_dict=feed_dict)
@@ -311,7 +305,6 @@ class Inception:
         transfer_values = np.squeeze(transfer_values)
 
         return transfer_values
-
 
 ########################################################################
 # Batch-processing.
@@ -334,7 +327,6 @@ def process_images(fn, images=None, image_paths=None):
 
     # For each input image.
     for i in range(num_images):
-        # Status-message. Note the \r which means the line should overwrite itself.
         msg = "\r- Processing image: {0:>6} / {1}".format(i+1, num_images)
 
         # Print the status message.

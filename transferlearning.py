@@ -2,15 +2,12 @@ import time
 from datetime import timedelta
 # We use Pretty Tensor to define the new classifier.
 import prettytensor as pt
-
 # Functions and classes for loading and using the Inception model.
 import inception
-
 #Various directories and files
 exec(open("./configuration.py").read())
-#Read data from files
+#Read images from files
 exec(open("./DataImport.py").read())
-
 from inception import transfer_values_cache
 '''
 ###########################################################################
@@ -27,7 +24,6 @@ print([op.name for op in ops])
 ###########################################################################
 '''
 
-
 num_classes = 2
 inception.maybe_download()
 model = inception.Inception()
@@ -37,34 +33,26 @@ file_path_cache_test = os.path.join(cache_data_path, 'inception_test.pkl')
 
 print("Processing Inception transfer-values for training-images ...")
 
-# Scale images because Inception needs pixels to be between 0 and 255,
-# while the CIFAR-10 functions return pixels between 0.0 and 1.0
-# image_path = [os.path.join(data_dir, 'profile.jpg'), os.path.join(data_dir, 'cover.jpg')]
-images_train = data.train.images
 labels_train =  data.train.labels
-images_test = data.test.images
 labels_test =  data.test.labels
-
-# images_scaled = images_train * 255.0
 
 # If transfer-values have already been calculated then reload them,
 # otherwise calculate them and save them to a cache-file.
 transfer_values_train = transfer_values_cache(cache_path=file_path_cache_train,
-                                              images=images_train,
+                                              images=data.train.images,
                                               model=model)
 
 print("Processing Inception transfer-values for testing-images ...")
 
 transfer_values_test = transfer_values_cache(cache_path=file_path_cache_test,
-                                              images=images_test,
+                                              images=data.test.images,
                                               model=model)
+
 
 transfer_len = model.transfer_len
 x = tf.placeholder(tf.float32, shape=[None, transfer_len], name='x')
 y_true = tf.placeholder(tf.float32, shape=[None, num_classes], name='y_true')
 y_true_cls = tf.argmax(y_true, dimension=1)
-
-
 
 # Wrap the transfer-values as a Pretty Tensor object.
 x_pretty = pt.wrap(x)
@@ -84,7 +72,7 @@ accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
 session = tf.Session()
 session.run(tf.global_variables_initializer())
-train_batch_size = 8
+train_batch_size = 256
 def random_batch():
     # Number of images (transfer-values) in the training-set.
     num_images = len(transfer_values_train)
@@ -155,10 +143,6 @@ def predict_cls(transfer_values, labels, cls_true):
     # will be calculated in batches and filled into this array.
     cls_pred = np.zeros(shape=num_images, dtype=np.int)
 
-    # Now calculate the predicted classes for the batches.
-    # We will just iterate through all the batches.
-    # There might be a more clever and Pythonic way of doing this.
-
     # The starting index for the next batch is denoted i.
     i = 0
 
@@ -190,10 +174,6 @@ def predict_cls_test():
                        cls_true = cls_test)
 
 def classification_accuracy(correct):
-    # When averaging a boolean array, False means 0 and True means 1.
-    # So we are calculating: number of True / len(correct) which is
-    # the same as the classification accuracy.
-
     # Return the classification accuracy
     # and the number of correct classifications.
     return correct.mean(), correct.sum()
@@ -244,36 +224,3 @@ print_test_accuracy(show_example_errors=False,
 optimize(num_iterations=1000)
 print_test_accuracy(show_example_errors=False,
                     show_confusion_matrix=False)
-
-optimize(num_iterations=1000)
-print_test_accuracy(show_example_errors=False,
-                    show_confusion_matrix=False)
-
-optimize(num_iterations=1000)
-print_test_accuracy(show_example_errors=False,
-                    show_confusion_matrix=False)
-
-optimize(num_iterations=1000)
-print_test_accuracy(show_example_errors=False,
-                    show_confusion_matrix=False)
-
-optimize(num_iterations=1000)
-print_test_accuracy(show_example_errors=False,
-                    show_confusion_matrix=False)
-
-optimize(num_iterations=1000)
-print_test_accuracy(show_example_errors=False,
-                    show_confusion_matrix=False)
-
-optimize(num_iterations=1000)
-print_test_accuracy(show_example_errors=False,
-                    show_confusion_matrix=False)
-
-optimize(num_iterations=1000)
-print_test_accuracy(show_example_errors=False,
-                    show_confusion_matrix=False)
-
-optimize(num_iterations=1000)
-print_test_accuracy(show_example_errors=False,
-                    show_confusion_matrix=False)
-

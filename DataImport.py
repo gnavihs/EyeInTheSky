@@ -4,9 +4,11 @@ import tensorflow as tf
 import numpy as np
 import cv2
 import collections
+from scipy.ndimage import rotate
 np.set_printoptions(threshold=np.nan)
 
 exec(open("./File_Paths.py").read())
+############################################################################
 
 Dataset = collections.namedtuple('Dataset', ['images', 'labels', 'cls'])
 Datasets = collections.namedtuple('Datasets', ['train', 'test'])
@@ -15,29 +17,42 @@ cls_test = []
 images_train = []
 cls_train = []
 
-#Function for cropping images and assigning to test or train set
-def pre_process_image(image,  annotations_type, x, y):
+#Function for rotating images(augmentation) and adding in data set
+def rotate_image(image, angles, cls_label, dataset_type):
+    for angle in angles:
+        rot_cropped_image = rotate(image, angle, reshape=False)
+        if dataset_type == 'test':
+            images_test.append(rot_cropped_image)
+            cls_test.append(cls_label)
+        elif dataset_type == 'train':
+            images_train.append(rot_cropped_image)
+            cls_train.append(cls_label)
+
+
+def pre_process_image(image,  cls_label, x, y):
     # This function takes a single image as input, 
     # and returns all 256x256 cropped images
-    x0 = x - 128
-    y0 = y - 128
-    height, width = 255, 255
+    x0 = x - 128 # x coordinate of top right corner
+    y0 = y - 128 # y coordinate of top right corner
+    height, width = 256, 256 # height and width of image
+    angles = [0, 15, 30, 45] # angles by which to rotate
 
     if y0 > 0 and x0 > 0:
         if x0+height<image.shape[0] and y0+width<image.shape[1]:
             cropped_image = image[x0:x0+height, y0:y0+width,:]
             if (x%2048 < 1024) and (y%2048 < 1024):
-                images_test.append(cropped_image)
-                cls_test.append(annotations_type)
-            else:                
-                images_train.append(cropped_image)
-                cls_train.append(annotations_type)
+                rotate_image(cropped_image, angles, cls_label, 'test')
+            else:
+                rotate_image(cropped_image, angles, cls_label, 'train')
 
-
+################################################################################
 #Loop through all set of files to build train and test set            
 for single_set_of_file in all_files:
+    #Read whole image
     input_value = cv2.imread(single_set_of_file[0])
+    #Read positive annotations
     pos_value = cv2.imread(single_set_of_file[1])
+    #Read negative annotations
     neg_value = cv2.imread(single_set_of_file[2])
 
     #Cropping positively annotated images
@@ -54,7 +69,7 @@ for single_set_of_file in all_files:
     for i in range(len(neg_annotations_index_x)):
         pre_process_image(input_value, 0, neg_annotations_index_x[i], neg_annotations_index_y[i])
 
-
+#############################################################################################################
 #Set named tuples
 labels = np.zeros((len(cls_train), max(cls_train)+1))
 labels[np.arange(len(cls_train)),cls_train] = 1
@@ -65,8 +80,12 @@ labels[np.arange(len(cls_test)),cls_test] = 1
 test = Dataset(images=images_test, labels=labels, cls=cls_test)
 
 data = Datasets(train=train, test=test)
-print(len(data.train.images))
-print(len(data.test.images))
+
+#Size of dataset
+print("Number of images in train set", len(data.train.images))
+# print(len(data.train.labels))
+print("Number of images in test set", len(data.test.images))
+# print(len(data.test.labels))
 
 
 
