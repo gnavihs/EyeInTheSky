@@ -2,13 +2,10 @@ import time
 from datetime import timedelta
 # We use Pretty Tensor to define the new classifier.
 import prettytensor as pt
-# Functions and classes for loading and using the Inception model.
-import inception
 #Various directories and files
 exec(open("./configuration.py").read())
 #Read images from files
 exec(open("./DataImport.py").read())
-from inception import transfer_values_cache
 '''
 ###########################################################################
 ######################### Data Import Session #############################
@@ -217,10 +214,4 @@ optimize(num_iterations=1000)
 print_test_accuracy(show_example_errors=False,
                     show_confusion_matrix=False)
 
-optimize(num_iterations=1000)
-print_test_accuracy(show_example_errors=False,
-                    show_confusion_matrix=False)
 
-optimize(num_iterations=1000)
-print_test_accuracy(show_example_errors=False,
-                    show_confusion_matrix=False)

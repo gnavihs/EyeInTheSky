@@ -349,7 +349,7 @@ def process_images(fn, images=None, image_paths=None):
 
 ########################################################################
 
-
+'''
 def transfer_values_cache(cache_path, model, images=None, image_paths=None):
 
     # Helper-function for processing the images if the cache-file does not exist.
@@ -362,7 +362,15 @@ def transfer_values_cache(cache_path, model, images=None, image_paths=None):
     transfer_values = cache(cache_path=cache_path, fn=fn)
 
     return transfer_values
+'''
 
+
+def transfer_values_cache(model, images=None, image_paths=None):
+
+    # Helper-function for processing the images if the cache-file does not exist.
+    # This is needed because we cannot supply both fn=process_images
+    # and fn=model.transfer_values to the cache()-function.
+    return process_images(fn=model.transfer_values, images=images, image_paths=image_paths)
 
 ########################################################################
 # Example usage.

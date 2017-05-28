@@ -1,15 +1,164 @@
-import os
+import os, os.path
 os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 import tensorflow as tf
+import pickle
 import numpy as np
 import cv2
 import collections
 from scipy.ndimage import rotate
 np.set_printoptions(threshold=np.nan)
-
+import inception
+from inception import transfer_values_cache
+import re
+exec(open("./configuration.py").read())
 exec(open("./File_Paths.py").read())
+
 ############################################################################
 
+total_train_images = 0
+total_test_images = 0
+cache_batch_size = 10
+
+#Getting total number of train and test images
+for dir in dirs:
+    path_train = dir + 'train/'
+    path_test = dir + 'test/'
+
+    for root, di, files in os.walk(path_train):
+        total_train_images += len(files)
+
+    for root, di, files in os.walk(path_test):
+        total_test_images += len(files)
+
+print("Total training-images", total_train_images)
+print("Total testing-images", total_test_images)
+
+#Getting total number of train and test cache files
+total_train_cache_files = total_train_images//cache_batch_size + 1
+total_test_cache_files = total_test_images//cache_batch_size + 1
+#############################################################################
+
+file_path_cache_train = os.path.join(cache_data_path, 'inception_train_')
+file_path_cache_test = os.path.join(cache_data_path, 'inception_test_')
+cache_extension = '.pkl'
+
+num_classes = 2
+inception.maybe_download()
+model = inception.Inception()
+
+if not os.path.exists(file_path_cache_train + '0' + cache_extension):
+    print("Saving training-images")
+    # Intialize values
+    start = 0
+    end = start + cache_batch_size
+    j = 0
+
+    #Fill one cache file at a time
+    for i in range(total_train_cache_files):
+        flag = False
+        file_paths = []
+
+        # This while loop gives path of number of files in cache_batch_size
+        while flag == False:
+            if j < len(dirs):
+                path_train = dirs[j] + 'train/'
+            else:
+                break
+            file_names = [os.path.join(path_train, f) for f in os.listdir(path_train) if os.path.isfile(os.path.join(path_train, f))]
+            if end > len(file_names):
+                file_paths.extend(file_names[start:len(file_names)])
+                diff = cache_batch_size - (len(file_names) - start)
+                start = 0 
+                end = start + diff
+                j += 1
+                flag = False
+            else:
+                file_paths.extend(file_names[start:end])
+                start = end
+                end = start + cache_batch_size
+                flag = True
+        
+        images = []
+        for aFile in file_paths:
+            input_value = cv2.imread(aFile)
+            images.append(input_value)
+        transfer_values_train = transfer_values_cache(images=images,
+                                                      model=model)      
+
+        cache_path = file_path_cache_train + str(i) + cache_extension
+        with open(cache_path, mode='wb') as file:
+            pickle.dump(transfer_values_train, file)
+        print("- Data saved to cache-file: " + cache_path)
+else:
+    print("Training-images already saved")
+
+# Same thing for test images
+if not os.path.exists(file_path_cache_test + '0' + cache_extension):
+    print("Saving testing-images")
+    # Intialize values
+    start = 0
+    end = start + cache_batch_size
+    j = 0
+
+    #Fill one cache file at a time
+    for i in range(total_test_cache_files):
+        flag = False
+        file_paths = []
+
+        # This while loop gives path of number of files in cache_batch_size
+        while flag == False:
+            if j < len(dirs):
+                path_test = dirs[j] + 'test/'
+            else:
+                break
+            file_names = [os.path.join(path_test, f) for f in os.listdir(path_test) if os.path.isfile(os.path.join(path_test, f))]
+            if end > len(file_names):
+                file_paths.extend(file_names[start:len(file_names)])
+                diff = cache_batch_size - (len(file_names) - start)
+                start = 0 
+                end = start + diff
+                j += 1
+                flag = False
+            else:
+                file_paths.extend(file_names[start:end])
+                start = end
+                end = start + cache_batch_size
+                flag = True
+        
+        images = []
+        for aFile in file_paths:
+            input_value = cv2.imread(aFile)
+            images.append(input_value)
+        transfer_values_test = transfer_values_cache(images=images,
+                                                      model=model)      
+
+        cache_path = file_path_cache_test + str(i) + cache_extension
+        with open(cache_path, mode='wb') as file:
+            pickle.dump(transfer_values_test, file)
+        print("- Data saved to cache-file: " + cache_path)
+else:
+    print("Testing-images already saved")
+
+
+'''
+print("Processing Inception transfer-values for training-images ...")
+
+labels_train =  data.train.labels
+labels_test =  data.test.labels
+
+transfer_len = model.transfer_len
+'''
+
+
+
+
+
+
+
+
+
+
+'''
 Dataset = collections.namedtuple('Dataset', ['images', 'labels', 'cls'])
 Datasets = collections.namedtuple('Datasets', ['train', 'test'])
 images_test = []
@@ -91,7 +240,7 @@ print("Number of images in test set", len(data.test.images))
 
 
 
-'''
+
 print("AAAAAAAAA")
 reader = tf.WholeFileReader()
 for single_set_of_file in all_files:
