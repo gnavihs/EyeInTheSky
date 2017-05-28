@@ -17,7 +17,10 @@ exec(open("./File_Paths.py").read())
 
 total_train_images = 0
 total_test_images = 0
-cache_batch_size = 10
+all_labels_train = []
+all_labels_test = []
+positive_label = re.compile(r'^car')
+
 
 #Getting total number of train and test images
 for dir in dirs:
@@ -42,12 +45,13 @@ file_path_cache_train = os.path.join(cache_data_path, 'inception_train_')
 file_path_cache_test = os.path.join(cache_data_path, 'inception_test_')
 cache_extension = '.pkl'
 
-num_classes = 2
 inception.maybe_download()
 model = inception.Inception()
 
+############################################################################
+#save training images
 if not os.path.exists(file_path_cache_train + '0' + cache_extension):
-    print("Saving training-images")
+    print("Saving train-images")
     # Intialize values
     start = 0
     end = start + cache_batch_size
@@ -78,23 +82,46 @@ if not os.path.exists(file_path_cache_train + '0' + cache_extension):
                 end = start + cache_batch_size
                 flag = True
         
+        #Getting images and labels in the list
         images = []
         for aFile in file_paths:
+            #Image decoding
             input_value = cv2.imread(aFile)
             images.append(input_value)
+            #Label decoding
+            aFileName = os.path.basename(aFile)
+            mo = positive_label.search(aFileName)
+            if mo:
+                all_labels_train.append(1)
+            else:
+                all_labels_train.append(0)
+
+        #Calculating transfer values
         transfer_values_train = transfer_values_cache(images=images,
                                                       model=model)      
 
+        #Storing transfer values
+        #This will act as input to new network
         cache_path = file_path_cache_train + str(i) + cache_extension
         with open(cache_path, mode='wb') as file:
             pickle.dump(transfer_values_train, file)
         print("- Data saved to cache-file: " + cache_path)
+
+    #Storing labels for all the images in a single cache file
+    cache_path_labels = file_path_cache_train + 'labels' + cache_extension
+    print(all_labels_train)
+    with open(cache_path_labels, mode='wb') as file:
+        pickle.dump(all_labels_train, file)
+    print("- Labels saved to cache-file: " + cache_path_labels)
+
+
 else:
     print("Training-images already saved")
 
-# Same thing for test images
+############################################################################
+# Save test images
 if not os.path.exists(file_path_cache_test + '0' + cache_extension):
-    print("Saving testing-images")
+    print("Saving test-images")
     # Intialize values
     start = 0
     end = start + cache_batch_size
@@ -129,6 +156,14 @@ if not os.path.exists(file_path_cache_test + '0' + cache_extension):
         for aFile in file_paths:
             input_value = cv2.imread(aFile)
             images.append(input_value)
+            #Label decoding
+            aFileName = os.path.basename(aFile)
+            mo = positive_label.search(aFileName)
+            if mo:
+                all_labels_test.append(1)
+            else:
+                all_labels_test.append(0)
+
         transfer_values_test = transfer_values_cache(images=images,
                                                       model=model)      
 
@@ -136,6 +171,13 @@ if not os.path.exists(file_path_cache_test + '0' + cache_extension):
         with open(cache_path, mode='wb') as file:
             pickle.dump(transfer_values_test, file)
         print("- Data saved to cache-file: " + cache_path)
+    
+    cache_path_labels = file_path_cache_test + 'labels' + cache_extension
+    print(all_labels_test)
+    with open(cache_path_labels, mode='wb') as file:
+        pickle.dump(all_labels_test, file)
+    print("- Labels saved to cache-file: " + cache_path_labels)
+
 else:
     print("Testing-images already saved")
 

@@ -1,6 +1,16 @@
-import os, os.path
+import os
 
 patch_sets_path = '/home/shivang/Downloads/ObjectDetection/COWC/gdo152.ucllnl.org/pub/cowc/datasets/patch_sets/detection/'
 #Data Paths for test and train images
-dirs = [patch_sets_path + "shivang/",
-        patch_sets_path + "bum/"]
+dirs = ["Columbus_CSUAV_AFRL/",
+        "Potdam_ISPRS/",
+        "Selwyn_LINZ/",
+        "Toronto_ISPRS/",
+        "Utah_AGRC/",
+        "Vaihingen_ISPRS/"]
+
+
+dirs = [os.path.join(patch_sets_path, f) for f in dirs]
+# print(dirs)
+
+cache_batch_size = 10000

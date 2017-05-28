@@ -22,31 +22,6 @@ print([op.name for op in ops])
 '''
 
 num_classes = 2
-inception.maybe_download()
-model = inception.Inception()
-
-file_path_cache_train = os.path.join(cache_data_path, 'inception_train.pkl')
-file_path_cache_test = os.path.join(cache_data_path, 'inception_test.pkl')
-
-print("Processing Inception transfer-values for training-images ...")
-
-labels_train =  data.train.labels
-labels_test =  data.test.labels
-
-# If transfer-values have already been calculated then reload them,
-# otherwise calculate them and save them to a cache-file.
-transfer_values_train = transfer_values_cache(cache_path=file_path_cache_train,
-                                              images=data.train.images,
-                                              model=model)
-
-print("Processing Inception transfer-values for testing-images ...")
-
-transfer_values_test = transfer_values_cache(cache_path=file_path_cache_test,
-                                              images=data.test.images,
-                                              model=model)
-
-
-transfer_len = model.transfer_len
 x = tf.placeholder(tf.float32, shape=[None, transfer_len], name='x')
 y_true = tf.placeholder(tf.float32, shape=[None, num_classes], name='y_true')
 y_true_cls = tf.argmax(y_true, dimension=1)
@@ -56,7 +31,6 @@ x_pretty = pt.wrap(x)
 
 with pt.defaults_scope(activation_fn=tf.nn.relu):
     y_pred, loss = x_pretty.\
-        fully_connected(size=100, name='layer_fc1').\
         softmax_classifier(num_classes=num_classes, labels=y_true)
 
 global_step = tf.Variable(initial_value=0,
