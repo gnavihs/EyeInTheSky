@@ -309,3 +309,4 @@ for single_set_of_file in all_files:
 # shapeOp = tf.shape(a_patch)
 
 '''
+    
