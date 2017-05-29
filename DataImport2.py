@@ -112,7 +112,7 @@ if not os.path.exists(file_path_cache_train + '0' + cache_extension):
 
     #Storing labels for all the images in a single cache file
     cache_path_labels = file_path_cache_train + 'labels' + cache_extension
-    print(all_labels_train)
+    # print(all_labels_train)
     with open(cache_path_labels, mode='wb') as file:
         pickle.dump(all_labels_train, file)
     print("- Labels saved to cache-file: " + cache_path_labels)
@@ -156,7 +156,7 @@ if not os.path.exists(file_path_cache_train + '0' + cache_extension):
 
     #Storing labels for all the images in a single cache file
     cache_path_labels = file_path_cache_test + 'labels' + cache_extension
-    print(all_labels_test)
+    # print(all_labels_test)
     with open(cache_path_labels, mode='wb') as file:
         pickle.dump(all_labels_test, file)
     print("- Labels saved to cache-file: " + cache_path_labels)
