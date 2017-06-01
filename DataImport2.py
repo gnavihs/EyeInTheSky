@@ -116,6 +116,7 @@ if not os.path.exists(file_path_cache_train + '0' + cache_extension):
     with open(cache_path_labels, mode='wb') as file:
         pickle.dump(all_labels_train, file)
     print("- Labels saved to cache-file: " + cache_path_labels)
+    print(all_labels_train)
 
     start = 0
     end = start+cache_batch_size
@@ -160,3 +161,5 @@ if not os.path.exists(file_path_cache_train + '0' + cache_extension):
     with open(cache_path_labels, mode='wb') as file:
         pickle.dump(all_labels_test, file)
     print("- Labels saved to cache-file: " + cache_path_labels)
+else:
+    print("Training and testing images already saved")

@@ -2,10 +2,11 @@ import time
 from datetime import timedelta
 # We use Pretty Tensor to define the new classifier.
 import prettytensor as pt
+from numpy import array
 #Various directories and files
 exec(open("./configuration.py").read())
 #Read images from files
-exec(open("./DataImport.py").read())
+exec(open("./DataImport2.py").read())
 '''
 ###########################################################################
 ######################### Data Import Session #############################
@@ -20,8 +21,40 @@ print([op.name for op in ops])
 
 ###########################################################################
 '''
+#'1' for car, '0' for not car
+labels_train = []
+labels_test = []
+
+#Load labels for all the train images
+cache_path = file_path_cache_train + 'labels' + cache_extension
+# If the cache-file exists.
+if os.path.exists(cache_path):
+    # Load the cached data from the file.
+    with open(cache_path, mode='rb') as file:
+        labels_train = pickle.load(file)
+
+#Converting labels into one hot array
+labels_one_hot_train = np.zeros((len(labels_train), max(labels_train)+1))
+labels_one_hot_train[np.arange(len(labels_train)),labels_train] = 1
+labels_train = array(labels_train)
+
+#Load labels for all the test images
+cache_path = file_path_cache_test + 'labels' + cache_extension
+# If the cache-file exists.
+if os.path.exists(cache_path):
+    # Load the cached data from the file.
+    with open(cache_path, mode='rb') as file:
+        labels_test = pickle.load(file)
+
+#Converting labels into one hot array
+labels_one_hot_test = np.zeros((len(labels_test), max(labels_test)+1))
+labels_one_hot_test[np.arange(len(labels_test)),labels_test] = 1
+labels_test = array(labels_test)
+###########################################################################
+#New network
 
 num_classes = 2
+transfer_len = model.transfer_len
 x = tf.placeholder(tf.float32, shape=[None, transfer_len], name='x')
 y_true = tf.placeholder(tf.float32, shape=[None, num_classes], name='y_true')
 y_true_cls = tf.argmax(y_true, dimension=1)
@@ -39,25 +72,40 @@ optimizer = tf.train.AdamOptimizer(learning_rate=1e-4).minimize(loss, global_ste
 y_pred_cls = tf.argmax(y_pred, dimension=1)
 correct_prediction = tf.equal(y_pred_cls, y_true_cls)
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-
+###########################################################################
+#Session
 
 session = tf.Session()
 session.run(tf.global_variables_initializer())
 train_batch_size = 256
 def random_batch():
+
+    cache_file_id = np.random.choice(total_train_cache_files,
+                                    size=1,
+                                    replace=False)    
+    cache_path = file_path_cache_train + str(cache_file_id[0]) + cache_extension
+    # If the cache-file exists.
+    if os.path.exists(cache_path):
+        # Load the cached data from the file.
+        with open(cache_path, mode='rb') as file:
+            transfer_values_train = pickle.load(file)
+
     # Number of images (transfer-values) in the training-set.
     num_images = len(transfer_values_train)
 
     # Create a random index.
     idx = np.random.choice(num_images,
-                           size=train_batch_size,
+                           size=num_images if train_batch_size>num_images else train_batch_size,
                            replace=False)
 
     # Use the random index to select random x and y-values.
     # We use the transfer-values instead of images as x-values.
     x_batch = transfer_values_train[idx]
-    y_batch = labels_train[idx]
+    labels_id = [cache_file_id[0]*cache_batch_size + id for id in idx]
+    y_batch = labels_one_hot_train[labels_id]
 
+    # print("cache file:",cache_path)
+    # print("labels_id:",labels_id)
     return x_batch, y_batch
 
 
@@ -84,13 +132,15 @@ def optimize(num_iterations):
                                   feed_dict=feed_dict_train)
 
         # Print status to screen every 100 iterations (and last).
-        if (i_global % 100 == 0) or (i == num_iterations - 1):
+        #IMPORTANT NOTE: Ideally accuracy on whole training set should be calculated
+        #But not done here......To be discussed later
+        if (i_global % 1000 == 0) or (i == num_iterations - 1):
             # Calculate the accuracy on the training-batch.
             batch_acc = session.run(accuracy,
                                     feed_dict=feed_dict_train)
 
             # Print status.
-            msg = "Global Step: {0:>6}, Training Batch Accuracy: {1:>6.1%}"
+            msg = "Global Step: {0:>6}, Training Batch Accuracy of latest batch: {1:>6.1%}"
             print(msg.format(i_global, batch_acc))
 
     # Ending time.
@@ -104,7 +154,7 @@ def optimize(num_iterations):
 
 
 # Split the data-set in batches of this size to limit RAM usage.
-batch_size = 256
+test_batch_size = 256
 
 def predict_cls(transfer_values, labels, cls_true):
     # Number of images.
@@ -119,7 +169,7 @@ def predict_cls(transfer_values, labels, cls_true):
 
     while i < num_images:
         # The ending index for the next batch is denoted j.
-        j = min(i + batch_size, num_images)
+        j = min(i + test_batch_size, num_images)
 
         # Create a feed-dict with the images and labels
         # between index i and j.
@@ -139,22 +189,39 @@ def predict_cls(transfer_values, labels, cls_true):
     return correct, cls_pred
 
 
-def predict_cls_test():
+def predict_cls_test(transfer_values_test, index):
+    labels_id_test = []
+    # labels_id_test = range(cache_batch_size) if cache_batch_size<len(transfer_values_test) else range(len(transfer_values_test))
+    labels_id_test = range(len(transfer_values_test))
+    labels_id_test = [index*cache_batch_size + id for id in labels_id_test]
+    # print("labels_id_test: ", labels_id_test)
     return predict_cls(transfer_values = transfer_values_test,
-                       labels = labels_test,
-                       cls_true = cls_test)
+                       labels = labels_one_hot_test[labels_id_test],
+                       cls_true = labels_test[labels_id_test])
 
 def classification_accuracy(correct):
     # Return the classification accuracy
     # and the number of correct classifications.
-    return correct.mean(), correct.sum()
+    return sum(correct) / float(len(correct)), sum(correct)
 
 def print_test_accuracy(show_example_errors=False,
                         show_confusion_matrix=False):
+    
+    correct = []
+    cls_pred = []
 
-    # For all the images in the test-set,
-    # calculate the predicted classes and whether they are correct.
-    correct, cls_pred = predict_cls_test()
+    for i in range(total_test_cache_files):
+        cache_path = file_path_cache_test + str(i) + cache_extension
+        # print("cache_path:", cache_path)
+        if os.path.exists(cache_path):
+        # Load the cached data from the file.
+            with open(cache_path, mode='rb') as file:
+                transfer_values_test = pickle.load(file)
+                # For all the images in the test-set,
+                # calculate the predicted classes and whether they are correct.
+                correct_batch, cls_pred_batch = predict_cls_test(transfer_values_test, i)
+                correct.extend(correct_batch)
+                cls_pred.extend(cls_pred_batch)
     
     # Classification accuracy and the number of correct classifications.
     acc, num_correct = classification_accuracy(correct)
@@ -177,12 +244,14 @@ def print_test_accuracy(show_example_errors=False,
         plot_confusion_matrix(cls_pred=cls_pred)
 '''
 
+#################################################################################################################
 print_test_accuracy(show_example_errors=False,
                     show_confusion_matrix=False)
 
 optimize(num_iterations=1000)
 print_test_accuracy(show_example_errors=False,
                     show_confusion_matrix=False)
+
 
 optimize(num_iterations=1000)
 print_test_accuracy(show_example_errors=False,
