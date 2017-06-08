@@ -5,6 +5,8 @@ os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 import cv2
 import inception
 from inception import transfer_values_cache
+#Read configuration
+exec(open("./configuration.py").read())
 
 inception.maybe_download()
 model = inception.Inception()
@@ -29,27 +31,27 @@ patch_size      = 224
 kImage_size     = 192
 kImage_pad      = 16    #patch_size = kImage_size + 2*kImage_pad
 
-patches_path_dir    = '/home/shivang/Downloads/ObjectDetection/COWC/gdo152.ucllnl.org/pub/cowc/datasets/testing_scenes/testing_scenes/'
-patches_path        = []
+#2048x2048 image paths
+patch_paths    = []
 
 #Get all file paths
-for root, di, files in os.walk(patches_path_dir):
+for root, di, files in os.walk(patch_paths_dir):
     file_names = [os.path.join(root, f) for f in os.listdir(root) if os.path.isfile(os.path.join(root, f))]
-    patches_path.extend(file_names)
+    patch_paths.extend(file_names)
 
 #Operate on one of the 21 files at a time
 #TODO: change file name to filenames
-file_name = [file_names[0]]
-for aFile in file_name:
+heat_maps = []
+for aFile in patch_paths:
     input_image             = cv2.imread(aFile)
     #Padding the whole image
-    input_image_pad         = np.zeros((input_image.shape[0]+window_pad*2, input_image.shape[1]+window_pad*2, 3), dtype=np.float64)
+    input_image_pad         = np.zeros((input_image.shape[0]+window_pad*2, input_image.shape[1]+window_pad*2, 3), dtype=np.float32)
     input_image_pad[window_pad:window_pad+input_image.shape[0],window_pad:window_pad+input_image.shape[1],:] = input_image
     
     #Get heat map dimensions
-    heat_map_col        = (input_image_pad.shape[1] - kImage_size)//window_stride + 1
-    heat_map_row        = (input_image_pad.shape[0] - kImage_size)//window_stride + 1
-    heat_map            = np.zeros((heat_map_row, heat_map_col), dtype=np.float64)
+    heat_map_col            = (input_image_pad.shape[1] - kImage_size)//window_stride + 1
+    heat_map_row            = (input_image_pad.shape[0] - kImage_size)//window_stride + 1
+    heat_map                = np.zeros((heat_map_row, heat_map_col), dtype=np.float32)
 
     #Get all 192x192 patches from input_image_pad
     #Pad them to make 224x224
@@ -62,13 +64,14 @@ for aFile in file_name:
             y1  = i*window_stride+kImage_size
             x1  = j*window_stride+kImage_size
             aImage      = input_image_pad[y0:y1,x0:x1,:]
-            aImage_pad  = np.zeros((aImage.shape[0]+kImage_pad*2, aImage.shape[1]+kImage_pad*2, 3), dtype=np.float64)
+            aImage_pad  = np.zeros((aImage.shape[0]+kImage_pad*2, aImage.shape[1]+kImage_pad*2, 3), dtype=np.float32)
             aImage_pad[kImage_pad:kImage_pad+aImage.shape[0],kImage_pad:kImage_pad+aImage.shape[1],:] = aImage
             aAll_Cropped_Images.append(aImage_pad)
 
         #Transfer values of all images in a row (265 images)
         transfer_values = transfer_values_cache(images=aAll_Cropped_Images,
                                                 model=model)     
+        model.close()
 
         #Pass transfer values to new network
         sess        = tf.InteractiveSession()
@@ -88,7 +91,8 @@ for aFile in file_name:
         for j in range(heat_map_col):
             P_final         = pow(Probabilities[j][1] - Probabilities[j][0] + 1.0,log_power)/pow(2,log_power)
             heat_map[i][j]  = P_final
-    
+        
+    heat_maps.append(heat_map)
     # print(heat_map)
     
 #########################################################################################################################
@@ -100,7 +104,8 @@ def non_max_suppression(input, window_size):
     # NOTE: if input has negative values, the suppressed values can be higher than original
     return output # output: B X W X H x C
 
-x = heatmap.reshape([1,heat_map_row,heat_map_col,1])
+#An example for non maximal suppression
+x = heat_maps[0].reshape([1,heat_map_row,heat_map_col,1])
 inp = tf.Variable(x)
 out = non_max_suppression(inp, 3)
 
@@ -110,6 +115,3 @@ print("After non maximal suppression of heat map: ")
 print(out.eval().reshape([heat_map_row,heat_map_col]))
 
 sess.close()
-
-
-

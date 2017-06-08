@@ -21,5 +21,9 @@ cache_data_path = "./cache/"
 #Number of classes specified for softmax classifier
 num_classes = 2
 
+#Path for 2048x2048 images
+patch_paths_dir    = '/home/shivang/Downloads/ObjectDetection/COWC/gdo152.ucllnl.org/pub/cowc/datasets/testing_scenes/testing_scenes/'
+
+
 ########################################################################    
 

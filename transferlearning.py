@@ -259,6 +259,6 @@ print_test_accuracy(show_example_errors=False,
 save_path = saver.save(session, "./tmp/model")
 print("Model saved in file: %s" % save_path)
 
-for i in tf.get_default_graph().get_operations():
-    print(i.values())
+# for i in tf.get_default_graph().get_operations():
+#     print(i.values())
 session.close()

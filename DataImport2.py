@@ -14,7 +14,7 @@ import sys
 from random import shuffle
 exec(open("./configuration.py").read())
 exec(open("./File_Paths.py").read())
-
+from random import randint
 ############################################################################
 
 total_train_images  = 0
@@ -22,7 +22,7 @@ total_test_images   = 0
 all_labels_train    = []
 all_labels_test     = []
 positive_label      = re.compile(r'^car')
-
+image_size          = 224
 
 #Getting total number of train and test images
 for dir in dirs:
@@ -50,6 +50,14 @@ cache_extension         = '.pkl'
 inception.maybe_download()
 model = inception.Inception()
 
+def crop_center(img,cropx,cropy):
+    y,x,c = img.shape
+    x_shift = randint(-12,12)
+    y_shift = randint(-12,12)
+
+    startx = x//2 - cropx//2 + x_shift
+    starty = y//2 - cropy//2 + y_shift  
+    return img[starty:starty+cropy, startx:startx+cropx, :]
 ############################################################################
 #save training images
 if not os.path.exists(file_path_cache_train + '0' + cache_extension):
@@ -88,8 +96,12 @@ if not os.path.exists(file_path_cache_train + '0' + cache_extension):
 
         for aFile in image_paths:
             #Image decoding
-            input_value = cv2.imread(aFile)
-            images.append(input_value)
+            input_value         = cv2.imread(aFile)
+            #Get a 224x224 from 256x256 image
+            input_value_crop    = np.zeros((image_size, image_size, 3), dtype=np.float32)
+            input_value_crop    = crop_center(input_value,image_size,image_size)
+
+            images.append(input_value_crop)
             #Label decoding
             aFileName = os.path.basename(aFile)
             mo = positive_label.search(aFileName)

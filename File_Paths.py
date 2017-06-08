@@ -17,6 +17,7 @@ dirs = ["dummy1/",
 dirs = [os.path.join(patch_sets_path, f) for f in dirs]
 # print(dirs)
 
+#for training 308,988 patches and testing 79,447 patches  
 cache_batch_size = 6
 
 
