@@ -17,5 +17,9 @@ path_graph_def = "classify_image_graph_def.pb"
 
 #Directory to store the cached transfer values
 cache_data_path = "./cache/"
+
+#Number of classes specified for softmax classifier
+num_classes = 2
+
 ########################################################################    
 

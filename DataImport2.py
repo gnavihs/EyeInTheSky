@@ -17,17 +17,17 @@ exec(open("./File_Paths.py").read())
 
 ############################################################################
 
-total_train_images = 0
-total_test_images = 0
-all_labels_train = []
-all_labels_test = []
-positive_label = re.compile(r'^car')
+total_train_images  = 0
+total_test_images   = 0
+all_labels_train    = []
+all_labels_test     = []
+positive_label      = re.compile(r'^car')
 
 
 #Getting total number of train and test images
 for dir in dirs:
-    path_train = dir + 'train/'
-    path_test = dir + 'test/'
+    path_train  = dir + 'train/'
+    path_test   = dir + 'test/'
 
     for root, di, files in os.walk(path_train):
         total_train_images += len(files)
@@ -40,12 +40,12 @@ print("Total testing-images", total_test_images)
 
 #Getting total number of train and test cache files
 total_train_cache_files = total_train_images//cache_batch_size + 1
-total_test_cache_files = total_test_images//cache_batch_size + 1
+total_test_cache_files  = total_test_images//cache_batch_size + 1
 #############################################################################
 
-file_path_cache_train = os.path.join(cache_data_path, 'inception_train_')
-file_path_cache_test = os.path.join(cache_data_path, 'inception_test_')
-cache_extension = '.pkl'
+file_path_cache_train   = os.path.join(cache_data_path, 'inception_train_')
+file_path_cache_test    = os.path.join(cache_data_path, 'inception_test_')
+cache_extension         = '.pkl'
 
 inception.maybe_download()
 model = inception.Inception()
@@ -54,14 +54,14 @@ model = inception.Inception()
 #save training images
 if not os.path.exists(file_path_cache_train + '0' + cache_extension):
     # Intialize lists and varaibles
-    file_paths_train = []
-    file_paths_test = []
-    start = 0
-    end = start + cache_batch_size
+    file_paths_train    = []
+    file_paths_test     = []
+    start   = 0
+    end     = start + cache_batch_size
 
     for dir in dirs:
-        path_train = dir + 'train/'
-        path_test = dir + 'test/'
+        path_train  = dir + 'train/'
+        path_test   = dir + 'test/'
 
         for root, di, files in os.walk(path_train):
             file_names = [os.path.join(path_train, f) for f in os.listdir(path_train) if os.path.isfile(os.path.join(path_train, f))]
@@ -116,7 +116,7 @@ if not os.path.exists(file_path_cache_train + '0' + cache_extension):
     with open(cache_path_labels, mode='wb') as file:
         pickle.dump(all_labels_train, file)
     print("- Labels saved to cache-file: " + cache_path_labels)
-    print(all_labels_train)
+    # print(all_labels_train)
 
     start = 0
     end = start+cache_batch_size
@@ -163,3 +163,6 @@ if not os.path.exists(file_path_cache_train + '0' + cache_extension):
     print("- Labels saved to cache-file: " + cache_path_labels)
 else:
     print("Training and testing images already saved")
+
+
+model.close()

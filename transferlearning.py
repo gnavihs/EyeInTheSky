@@ -3,7 +3,7 @@ from datetime import timedelta
 # We use Pretty Tensor to define the new classifier.
 import prettytensor as pt
 from numpy import array
-#Various directories and files
+#Read configuration
 exec(open("./configuration.py").read())
 #Read images from files
 exec(open("./DataImport2.py").read())
@@ -22,8 +22,8 @@ print([op.name for op in ops])
 ###########################################################################
 '''
 #'1' for car, '0' for not car
-labels_train = []
-labels_test = []
+labels_train    = []
+labels_test     = []
 
 #Load labels for all the train images
 cache_path = file_path_cache_train + 'labels' + cache_extension
@@ -34,9 +34,9 @@ if os.path.exists(cache_path):
         labels_train = pickle.load(file)
 
 #Converting labels into one hot array
-labels_one_hot_train = np.zeros((len(labels_train), max(labels_train)+1))
+labels_one_hot_train    = np.zeros((len(labels_train), max(labels_train)+1))
 labels_one_hot_train[np.arange(len(labels_train)),labels_train] = 1
-labels_train = array(labels_train)
+labels_train            = array(labels_train)
 
 #Load labels for all the test images
 cache_path = file_path_cache_test + 'labels' + cache_extension
@@ -47,34 +47,36 @@ if os.path.exists(cache_path):
         labels_test = pickle.load(file)
 
 #Converting labels into one hot array
-labels_one_hot_test = np.zeros((len(labels_test), max(labels_test)+1))
+labels_one_hot_test     = np.zeros((len(labels_test), max(labels_test)+1))
 labels_one_hot_test[np.arange(len(labels_test)),labels_test] = 1
-labels_test = array(labels_test)
+labels_test             = array(labels_test)
 ###########################################################################
-#New network
+############################New network####################################
 
-num_classes = 2
-transfer_len = model.transfer_len
-x = tf.placeholder(tf.float32, shape=[None, transfer_len], name='x')
-y_true = tf.placeholder(tf.float32, shape=[None, num_classes], name='y_true')
-y_true_cls = tf.argmax(y_true, dimension=1)
+transfer_len    = model.transfer_len
+x               = tf.placeholder(tf.float32, shape=[None, transfer_len], name='x')
+y_true          = tf.placeholder(tf.float32, shape=[None, num_classes], name='y_true')
+y_true_cls      = tf.argmax(y_true, dimension=1)
 
 # Wrap the transfer-values as a Pretty Tensor object.
-x_pretty = pt.wrap(x)
+x_pretty        = pt.wrap(x)
 
 with pt.defaults_scope(activation_fn=tf.nn.relu):
     y_pred, loss = x_pretty.\
-        softmax_classifier(num_classes=num_classes, labels=y_true)
+        softmax_classifier(num_classes=num_classes, labels=y_true, name="softmax_classifiers")
 
 global_step = tf.Variable(initial_value=0,
                           name='global_step', trainable=False)
-optimizer = tf.train.AdamOptimizer(learning_rate=1e-4).minimize(loss, global_step)
-y_pred_cls = tf.argmax(y_pred, dimension=1)
-correct_prediction = tf.equal(y_pred_cls, y_true_cls)
-accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+optimizer           = tf.train.AdamOptimizer(learning_rate=1e-4).minimize(loss, global_step, name='optimiser')
+y_pred_cls          = tf.argmax(y_pred, dimension=1, name='y_pred_cls')
+correct_prediction  = tf.equal(y_pred_cls, y_true_cls, name='correct_prediction')
+accuracy            = tf.reduce_mean(tf.cast(correct_prediction, tf.float32), name='accuracy')
 ###########################################################################
-#Session
+#############Add ops to save and restore all the variables#################
+saver = tf.train.Saver()
 
+###########################################################################
+###############################Session#####################################
 session = tf.Session()
 session.run(tf.global_variables_initializer())
 train_batch_size = 256
@@ -155,7 +157,6 @@ def optimize(num_iterations):
 
 # Split the data-set in batches of this size to limit RAM usage.
 test_batch_size = 256
-
 def predict_cls(transfer_values, labels, cls_true):
     # Number of images.
     num_images = len(transfer_values)
@@ -199,16 +200,18 @@ def predict_cls_test(transfer_values_test, index):
                        labels = labels_one_hot_test[labels_id_test],
                        cls_true = labels_test[labels_id_test])
 
+
 def classification_accuracy(correct):
     # Return the classification accuracy
     # and the number of correct classifications.
     return sum(correct) / float(len(correct)), sum(correct)
 
+
 def print_test_accuracy(show_example_errors=False,
                         show_confusion_matrix=False):
     
-    correct = []
-    cls_pred = []
+    correct     = []
+    cls_pred    = []
 
     for i in range(total_test_cache_files):
         cache_path = file_path_cache_test + str(i) + cache_extension
@@ -232,6 +235,7 @@ def print_test_accuracy(show_example_errors=False,
     # Print the accuracy.
     msg = "Accuracy on Test-Set: {0:.1%} ({1} / {2})"
     print(msg.format(acc, num_correct, num_images))
+
 '''
     # Plot some examples of mis-classifications, if desired.
     if show_example_errors:
@@ -252,9 +256,9 @@ optimize(num_iterations=1000)
 print_test_accuracy(show_example_errors=False,
                     show_confusion_matrix=False)
 
+save_path = saver.save(session, "./tmp/model")
+print("Model saved in file: %s" % save_path)
 
-optimize(num_iterations=1000)
-print_test_accuracy(show_example_errors=False,
-                    show_confusion_matrix=False)
-
-
+for i in tf.get_default_graph().get_operations():
+    print(i.values())
+session.close()
