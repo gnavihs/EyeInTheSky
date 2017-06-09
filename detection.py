@@ -41,7 +41,7 @@ for root, di, files in os.walk(patch_paths_dir):
 
 #Operate on one of the 21 files at a time
 #TODO: change file name to filenames
-heat_maps = []
+heat_maps = [] #21 heat maps to be generated
 for aFile in patch_paths:
     input_image             = cv2.imread(aFile)
     #Padding the whole image
@@ -71,11 +71,11 @@ for aFile in patch_paths:
         #Transfer values of all images in a row (265 images)
         transfer_values = transfer_values_cache(images=aAll_Cropped_Images,
                                                 model=model)     
-        model.close()
+        # model.close()
 
         #Pass transfer values to new network
         sess        = tf.InteractiveSession()
-        sess.run(tf.global_variables_initializer())
+        # sess.run(tf.global_variables_initializer())
         new_saver   = tf.train.import_meta_graph('./tmp/model.meta')
         new_saver.restore(sess, tf.train.latest_checkpoint('./tmp/'))
 
