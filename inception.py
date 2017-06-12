@@ -218,6 +218,10 @@ class Inception:
         # Create a TensorFlow session for executing the graph.
         self.session = tf.Session(graph=self.graph)
 
+        for i in self.graph.get_operations():
+            print(i.values(), file=open("./Inception_model.txt", "a"))
+        print("Values of operations saved in Inception_model.txt")
+
     def close(self):
 
         self.session.close()

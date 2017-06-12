@@ -51,7 +51,7 @@ labels_one_hot_test     = np.zeros((len(labels_test), max(labels_test)+1))
 labels_one_hot_test[np.arange(len(labels_test)),labels_test] = 1
 labels_test             = array(labels_test)
 ###########################################################################
-############################New network####################################
+#######################     New network     ###############################
 
 transfer_len    = model.transfer_len
 x               = tf.placeholder(tf.float32, shape=[None, transfer_len], name='x')
@@ -65,9 +65,36 @@ with pt.defaults_scope(activation_fn=tf.nn.relu):
     y_pred, loss = x_pretty.\
         softmax_classifier(num_classes=num_classes, labels=y_true, name="softmax_classifiers")
 
+
 global_step = tf.Variable(initial_value=0,
                           name='global_step', trainable=False)
-optimizer           = tf.train.AdamOptimizer(learning_rate=1e-4).minimize(loss, global_step, name='optimiser')
+starter_learning_rate = 0.01
+end_learning_rate = 0.0001
+decay_steps = 10000
+momentum = 0.9
+WEIGHT_DECAY_FACTOR = 0.0002
+
+# # Setting weight decay term for losses
+# weights = tf.get_variable('weights', collections=['variables'])
+
+# with tf.variable_scope('weights_norm') as scope:
+#   weights_norm = tf.reduce_sum(input_tensor = WEIGHT_DECAY_FACTOR*tf.pack([tf.nn.l2_loss(i) for i in tf.get_collection('weights')]),
+#                                 name='weights_norm')
+
+# # Add the weight decay loss to another collection called losses
+# tf.add_to_collection('losses', weights_norm)
+
+# # To calculate total loss
+# total_loss = tf.add_n(tf.get_collection('losses'), name='total_loss')
+
+l2_loss = tf.add_n([tf.nn.l2_loss(v) for v in tf.trainable_variables()])
+total_loss = loss + WEIGHT_DECAY_FACTOR*l2_loss
+
+learning_rate = tf.train.polynomial_decay(starter_learning_rate, global_step,
+                                          decay_steps, end_learning_rate,
+                                          power=0.5, name='learning_rate')
+
+optimizer           = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=momentum).minimize(total_loss, global_step, name='optimiser')
 y_pred_cls          = tf.argmax(y_pred, dimension=1, name='y_pred_cls')
 correct_prediction  = tf.equal(y_pred_cls, y_true_cls, name='correct_prediction')
 accuracy            = tf.reduce_mean(tf.cast(correct_prediction, tf.float32), name='accuracy')
@@ -79,7 +106,7 @@ saver = tf.train.Saver()
 ###############################Session#####################################
 session = tf.Session()
 session.run(tf.global_variables_initializer())
-train_batch_size = 256
+train_batch_size = 64
 def random_batch():
 
     cache_file_id = np.random.choice(total_train_cache_files,
@@ -252,6 +279,7 @@ def print_test_accuracy(show_example_errors=False,
 print_test_accuracy(show_example_errors=False,
                     show_confusion_matrix=False)
 
+# TODO: 240k iterations
 optimize(num_iterations=1000)
 print_test_accuracy(show_example_errors=False,
                     show_confusion_matrix=False)
@@ -259,6 +287,9 @@ print_test_accuracy(show_example_errors=False,
 save_path = saver.save(session, "./tmp/model")
 print("Model saved in file: %s" % save_path)
 
-# for i in tf.get_default_graph().get_operations():
-#     print(i.values())
+for i in tf.get_default_graph().get_operations():
+    print(i.values(), file=open("./New_model.txt", "a"))
+print("Values of operations saved in New_model.txt")
+
+
 session.close()

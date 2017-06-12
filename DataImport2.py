@@ -50,10 +50,10 @@ cache_extension         = '.pkl'
 inception.maybe_download()
 model = inception.Inception()
 
-def crop_center(img,cropx,cropy):
+def crop_center(img,cropx,cropy,shift):
     y,x,c = img.shape
-    x_shift = randint(-12,12)
-    y_shift = randint(-12,12)
+    x_shift = randint(-shift,shift)
+    y_shift = randint(-shift,shift)
 
     startx = x//2 - cropx//2 + x_shift
     starty = y//2 - cropy//2 + y_shift  
@@ -99,7 +99,7 @@ if not os.path.exists(file_path_cache_train + '0' + cache_extension):
             input_value         = cv2.imread(aFile)
             #Get a 224x224 from 256x256 image
             input_value_crop    = np.zeros((image_size, image_size, 3), dtype=np.float32)
-            input_value_crop    = crop_center(input_value,image_size,image_size)
+            input_value_crop    = crop_center(input_value,image_size,image_size, 12)
 
             images.append(input_value_crop)
             #Label decoding
@@ -146,6 +146,10 @@ if not os.path.exists(file_path_cache_train + '0' + cache_extension):
         for aFile in image_paths:
             #Image decoding
             input_value = cv2.imread(aFile)
+            #Get a 224x224 from 256x256 image
+            input_value_crop    = np.zeros((image_size, image_size, 3), dtype=np.float32)
+            input_value_crop    = crop_center(input_value,image_size,image_size, 0)
+            
             images.append(input_value)
             #Label decoding
             aFileName = os.path.basename(aFile)
