@@ -3,6 +3,7 @@ from datetime import timedelta
 # We use Pretty Tensor to define the new classifier.
 import prettytensor as pt
 from numpy import array
+import random
 #Read configuration
 exec(open("./configuration.py").read())
 #Read images from files
@@ -74,19 +75,7 @@ decay_steps = 10000
 momentum = 0.9
 WEIGHT_DECAY_FACTOR = 0.0002
 
-# # Setting weight decay term for losses
-# weights = tf.get_variable('weights', collections=['variables'])
-
-# with tf.variable_scope('weights_norm') as scope:
-#   weights_norm = tf.reduce_sum(input_tensor = WEIGHT_DECAY_FACTOR*tf.pack([tf.nn.l2_loss(i) for i in tf.get_collection('weights')]),
-#                                 name='weights_norm')
-
-# # Add the weight decay loss to another collection called losses
-# tf.add_to_collection('losses', weights_norm)
-
-# # To calculate total loss
-# total_loss = tf.add_n(tf.get_collection('losses'), name='total_loss')
-
+# Setting weight decay term for losses
 l2_loss = tf.add_n([tf.nn.l2_loss(v) for v in tf.trainable_variables()])
 total_loss = loss + WEIGHT_DECAY_FACTOR*l2_loss
 
@@ -107,6 +96,8 @@ saver = tf.train.Saver()
 session = tf.Session()
 session.run(tf.global_variables_initializer())
 train_batch_size = 64
+random.seed(2332)
+
 def random_batch():
 
     cache_file_id = np.random.choice(total_train_cache_files,
@@ -279,7 +270,13 @@ def print_test_accuracy(show_example_errors=False,
 print_test_accuracy(show_example_errors=False,
                     show_confusion_matrix=False)
 
-# TODO: 240k iterations
+#TODO: 240k iterations
+optimize(num_iterations=1000)
+print_test_accuracy(show_example_errors=False,
+                    show_confusion_matrix=False)
+
+optimize(num_iterations=1000)
+optimize(num_iterations=1000)
 optimize(num_iterations=1000)
 print_test_accuracy(show_example_errors=False,
                     show_confusion_matrix=False)

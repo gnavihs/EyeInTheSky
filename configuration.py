@@ -26,4 +26,3 @@ patch_paths_dir     = '/home/shivang/Downloads/ObjectDetection/COWC/gdo152.uclln
 
 
 ########################################################################    
-# print(s, file=open("./log_file.txt", "a"))
