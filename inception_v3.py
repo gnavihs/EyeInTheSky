@@ -29,6 +29,9 @@ from keras.preprocessing import image
 from keras.optimizers import SGD
 from keras.callbacks import TensorBoard
 from keras.callbacks import EarlyStopping
+from keras.callbacks import ReduceLROnPlateau
+from keras.callbacks import ModelCheckpoint
+
 
 
 # from load_cifar10 import load_cifar10_data
@@ -390,7 +393,6 @@ def InceptionV3(include_top=False,
     model.get_layer('my_predictions').trainable = True
 
 
-    # Learning rate is changed to 0.001
     sgd = SGD(lr=1e-3, decay=1e-6, momentum=0.9, nesterov=True)
     model.compile(optimizer=sgd, loss='categorical_crossentropy', metrics=['accuracy'])
 
@@ -405,7 +407,7 @@ if __name__ == '__main__':
     channel = 3
 
     batch_size = 64 
-    nb_epoch = 2
+    nb_epoch = 20
 
     # print(X_train.shape)
     # print(Y_train.shape)
@@ -426,9 +428,10 @@ if __name__ == '__main__':
     # model.summary()
 
     # Some callbacks for logging
-    tensorboard = TensorBoard(log_dir='./logs')
-    early_stopping = EarlyStopping(monitor='loss', patience=1)
-
+    tensorboard     = TensorBoard(log_dir='./logs')
+    early_stopping  = EarlyStopping(monitor='val_loss', patience=2)
+    reduceLR        = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=2, verbose=0, mode='auto', epsilon=0.0001, cooldown=0, min_lr=0)
+    checkpointer    = ModelCheckpoint(filepath='imagenet_models/my_model.h5', monitor='val_loss', verbose=0, save_best_only=True, save_weights_only=True, mode='auto', period=1)
     # Start Fine-tuning
     hist = model.fit(X_train, Y_train,
                       batch_size=batch_size,
@@ -436,11 +439,11 @@ if __name__ == '__main__':
                       shuffle=True,
                       verbose=1,
                       validation_data=(X_test, Y_test),
-                      callbacks=[tensorboard, early_stopping]
+                      callbacks=[tensorboard, early_stopping, reduceLR, checkpointer]
                       )
 
     # print(hist.history)
-    model.save_weights('imagenet_models/my_model.h5')  # creates a HDF5 file 'my_model.h5'
+    # model.save_weights('imagenet_models/my_model.h5')  # creates a HDF5 file 'my_model.h5'
     del model  # deletes the existing model
 
 
@@ -460,7 +463,9 @@ if __name__ == '__main__':
 
     # Some callbacks for logging
     # tensorboard = TensorBoard(log_dir='./logs')
-    early_stopping = EarlyStopping(monitor='loss', patience=2)
+    early_stopping  = EarlyStopping(monitor='val_loss', patience=3)
+    reduceLR        = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=3, verbose=0, mode='auto', epsilon=0.0001, cooldown=0, min_lr=0)
+    checkpointer    = ModelCheckpoint(filepath='imagenet_models/my_model_final.h5', monitor='val_loss', verbose=0, save_best_only=True, save_weights_only=True, mode='auto', period=1)
 
     # Start Fine-tuning
     hist = model.fit(X_train, Y_train,
@@ -469,10 +474,10 @@ if __name__ == '__main__':
                       shuffle=True,
                       verbose=1,
                       validation_data=(X_test, Y_test),
-                      callbacks=[tensorboard, early_stopping]
+                      callbacks=[tensorboard, early_stopping, reduceLR, checkpointer]
                       )
 
-    model.save_weights('imagenet_models/my_model_final.h5')  # creates a HDF5 file 'my_model.h5'
+    # model.save_weights('imagenet_models/my_model_final.h5')  # creates a HDF5 file 'my_model.h5'
     del model  # deletes the existing model
     
 

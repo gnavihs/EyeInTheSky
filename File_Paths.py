@@ -5,7 +5,6 @@ import numpy as np
 # Classification training
 patch_sets_path = '/home/shivang/Downloads/ObjectDetection/COWC/gdo152.ucllnl.org/pub/cowc/datasets/patch_sets/detection/'
 # Data Paths for test and train images
-'''
 dirs = ["Columbus_CSUAV_AFRL/",
         "Potdam_ISPRS/",
         "Selwyn_LINZ/",
@@ -13,10 +12,9 @@ dirs = ["Columbus_CSUAV_AFRL/",
         "Utah_AGRC/",
         "Vaihingen_ISPRS/"]
 '''
-
 dirs = ["dummy1/",
         "dummy2/"]
-
+'''
 dirs = [os.path.join(patch_sets_path, f) for f in dirs]
 
 
