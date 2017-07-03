@@ -1,0 +1,15 @@
+No. of training images:  48
+No. of testing images:  10
+DATA IMPORT: All the train and test data loaded in X_train, Y_train, X_test, Y_test
+FIRST STAGE: Training ONLY the last layer (softmax) of the updated inception model
+Train on 48 samples, validate on 10 samples
+Epoch 1/2
+48/48 [==============================] - 17s - loss: 0.9143 - acc: 0.4792 - val_loss: 1.1128 - val_acc: 0.5000
+Epoch 2/2
+48/48 [==============================] - 17s - loss: 0.8588 - acc: 0.4792 - val_loss: 1.0037 - val_acc: 0.5000
+SECOND STAGE: Training all the layers of the updated inception model
+Train on 48 samples, validate on 10 samples
+Epoch 1/2
+48/48 [==============================] - 54s - loss: 0.7986 - acc: 0.5208 - val_loss: 0.9513 - val_acc: 0.5000
+Epoch 2/2
+48/48 [==============================] - 45s - loss: 0.6086 - acc: 0.6458 - val_loss: 0.9039 - val_acc: 0.4000
