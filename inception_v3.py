@@ -27,20 +27,7 @@ from keras.applications.imagenet_utils import decode_predictions
 from keras.applications.imagenet_utils import _obtain_input_shape
 from keras.preprocessing import image
 
-from keras.optimizers import SGD
-from keras.callbacks import TensorBoard
-from keras.callbacks import EarlyStopping
-from keras.callbacks import ReduceLROnPlateau
-from keras.callbacks import ModelCheckpoint
-from keras.preprocessing.image import ImageDataGenerator
-
-
-# from load_cifar10 import load_cifar10_data
-#Read images from files
-# exec(open("./DataImport.py").read())
-exec(open("./File_Paths.py").read())
-exec(open("./example_counter.py").read())    
-
+from keras.optimizers import SGD    
 
 def conv2d_bn(x,
               filters,

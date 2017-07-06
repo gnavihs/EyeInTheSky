@@ -1,9 +1,15 @@
 import os
 import numpy as np
 
+######################################################################################################################################
 #Do NOT change these
 img_size            = 224
 original_img_size   = 256
+
+num_classes = 2
+batch_size  = 64 
+nb_epoch    = 30
+
 ######################################################################################################################################
 # Classification training
 patch_sets_path = '/home/shivang/Downloads/ObjectDetection/COWC/gdo152.ucllnl.org/pub/cowc/datasets/patch_sets/detection/'

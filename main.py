@@ -1,5 +1,24 @@
-exec(open("./inception_v3.py").read())
+from __future__ import print_function
+from __future__ import absolute_import
 
+import warnings
+import numpy as np
+import os, os.path
+from random import randint
+os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
+
+from keras.callbacks import TensorBoard
+from keras.callbacks import EarlyStopping
+from keras.callbacks import ReduceLROnPlateau
+from keras.callbacks import ModelCheckpoint
+from keras.preprocessing.image import ImageDataGenerator
+from keras import backend as K
+
+
+exec(open("./File_Paths.py").read())
+exec(open("./example_counter.py").read())   
+# exec(open("./inception_v3.py").read())
+from inception_v3 import InceptionV3
 
 def preprocess_input(x):
     x = np.true_divide(x, 255)
@@ -46,10 +65,7 @@ if __name__ == '__main__':
     img_rows    = original_img_size
     img_cols    = original_img_size # Resolution of inputs
     channel     = 3
-
-    num_classes = 2
-    batch_size  = 64 
-    nb_epoch    = 30
+    
 ##########################################################################################################################################################################################
 # this is the augmentation configuration we will use for training
     train_datagen = ImageDataGenerator(featurewise_center=False,
