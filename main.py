@@ -48,8 +48,8 @@ if __name__ == '__main__':
     channel     = 3
 
     num_classes = 2
-    batch_size  = 8 
-    nb_epoch    = 2
+    batch_size  = 64 
+    nb_epoch    = 30
 ##########################################################################################################################################################################################
 # this is the augmentation configuration we will use for training
     train_datagen = ImageDataGenerator(featurewise_center=False,
