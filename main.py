@@ -17,12 +17,10 @@ from keras import backend as K
 
 exec(open("./File_Paths.py").read())
 exec(open("./example_counter.py").read())   
-# exec(open("./inception_v3.py").read())
 from inception_v3 import InceptionV3
 
 def preprocess_input(x):
     x = np.true_divide(x, 255)
-    # x /= 255.
     x -= 0.5
     x *= 2.
     return x
@@ -65,7 +63,7 @@ if __name__ == '__main__':
     img_rows    = original_img_size
     img_cols    = original_img_size # Resolution of inputs
     channel     = 3
-    
+
 ##########################################################################################################################################################################################
 # this is the augmentation configuration we will use for training
     train_datagen = ImageDataGenerator(featurewise_center=False,

@@ -309,7 +309,7 @@ def InceptionV3(include_top=False,
         branch3x3_1 = conv2d_bn(branch3x3, 384, 1, 3)
         branch3x3_2 = conv2d_bn(branch3x3, 384, 3, 1)
         branch3x3 = layers.concatenate(
-            [branch3x3_1, branch3x3_2], axis=channel_axis, name='mixed9_' + str(i))
+            [branch3x3_1, branch3x3_2], axis=channel_axis, name='mixed' + str(9+i) + '_')
 
         branch3x3dbl = conv2d_bn(x, 448, 1, 1)
         branch3x3dbl = conv2d_bn(branch3x3dbl, 384, 3, 3)
@@ -367,7 +367,6 @@ def InceptionV3(include_top=False,
             convert_all_kernels_in_model(model)
 
     # Truncate and replace softmax layer for transfer learning
-    # Cannot use model.layers.pop() since model is not of Sequential() type
     # The method below works since pre-trained weights are stored in layers but not in the model
     x_newfc = Dense(classes, activation='softmax', name='my_predictions')(x)
 
