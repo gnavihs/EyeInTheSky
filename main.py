@@ -206,6 +206,3 @@ if __name__ == '__main__':
                             )
 
     del model  # deletes the existing model
-    
-    # preds = model.predict(x)
-    # print('Predicted:', decode_predictions(preds))
